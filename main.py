@@ -42,12 +42,12 @@ class Unit():
         print "   Unit: " + str(self.Name)
         self.Location.printt()
         print "   Range: " + str(self.Range)
-        if type == 1:
-            print "   Air Force"
-        if type == 2:
-            print "   Army"
-        if type == 3:
-            print "   Navy"
+        if self.Type == 1:
+            print "   Type: Air Force"
+        if self.Type == 2:
+            print "   Type: Army"
+        if self.Type == 3:
+            print "   Type: Navy"
         print ""
 
 '''class AirForceBase():
@@ -64,7 +64,7 @@ class Location():
         self.long = location.long'''
 
     def printt(self):
-        print "      Lattitude: " + str(self.Latt) + "Longitude: " + str(self.Long)
+        print "      Lattitude: " + str(self.Latt) + " Longitude: " + str(self.Long)
 
 
 class Target():
@@ -72,10 +72,25 @@ class Target():
         self.Location = Location(location.Latt, location.Long)
         self.Mobile = mobile
         self.Destroyed = False
-        self.MunitionUsed = None
         self.PopDensity = None
-        self.whoDestroyed = None
+        self.whoAssigned = None
+        self.Assigned = False
         self.inRangeof = []
+
+        #for quantifying effectiveness
+             #operational Effectiveness
+        self.NumAirCraftLost = 0
+        self.TypeMunitionUsed = None
+        self.NumMunitionsUsed = 0
+
+             #Cost of Stategy
+        self.MunitionCost = 0
+        self.DownedAirCraftCost = 0
+
+             #Collateral Damage
+        self.NumOfCasualties
+
+
 
     def printt(self):
         print "Target Location: " + str(self.Location.Latt) + " " + str(self.Location.Long)
@@ -86,16 +101,19 @@ class Target():
         print "In Range of: "
         for i in range(0, len(self.inRangeof)):
             self.inRangeof[i].printt()
-        print "Who Destoryed Target: " + str(self.whoDestroyed.printt())
-
-
+        print "Who Assigned to Target: "
+        print self.whoAssigned.printt()
 
 
 
 class Solution():
     def __init__(self):
         self.Targets = []
-        self.score = None
+        self.OperationalEffectivenessScore = 0
+        self.CostScore = 0
+        self.CollateralDamageScore = 0
+        self.TotalScore = 0
+        self.WeightedScore = 0
 
 
 class Scenario():
@@ -115,6 +133,7 @@ class Scenario():
             if iter > 99999:
                 print "Stuck in Finding Air Force Loop"
 
+        #find for assignment
     def findRandomUnitLocation(self):
         found = False
         iter = 0
@@ -125,6 +144,77 @@ class Scenario():
                 return randUnit
             if iter > 99999:
                 print "Stuck in Finding a Unit"
+
+
+    def firstTimeRandomAssignments(self):
+        #for all targets
+        for t in range(0, len(self.Targets)):
+
+            #for all units in range of this target
+            for i in range(0, len( self.Targets[t].inRangeof )):
+
+                #if Mobile Target then Assign Random Air Force Unit
+                if self.Targets[t].Mobile == True and self.Targets[t].Assigned == False :
+                    self.Targets[t].whoAssigned = self.Units[self.findRandomAirForceUnitLocation()]
+                    self.Targets[t].Assigned = True
+
+                #assign random Unit to  target
+                if self.Targets[t].Assigned == False:
+                    self.Targets[t].whoAssigned = self.Units[self.findRandomUnitLocation()]
+                    self.Targets[t].Assigned = True
+
+        for t in range(0, len(self.Targets)):
+            print self.Targets[t].printt()
+
+
+    def AFAttack(self,t):
+        #This is where we can perform complex math to figure probabilities for attacking this
+        #target at this specific location
+
+        '''Complicated Math here '''
+
+        #It will end with target being destroyed
+        self.Targets[t].Destroyed = True
+        self.MunitionUsed = "Munition that best fits our equation"
+
+    def ArmyAttack(self,t):
+        #This is where we can perform complex math to figure probabilities for attacking this
+        #target at this specific location
+
+        '''Complicated Math here '''
+
+        #It will end with target being destroyed
+        self.Targets[t].Destroyed = True
+        self.MunitionUsed = "Munition that best fits our equation"
+
+    def NavyAttack(self,t):
+        #This is where we can perform complex math to figure probabilities for attacking this
+        #target at this specific location
+
+        '''Complicated Math here '''
+
+        #It will end with target being destroyed
+        self.Targets[t].Destroyed = True
+        self.MunitionUsed = "Munition that best fits our equation"
+
+
+
+    def simulateAttacks(self):
+        # for all targets
+        for t in range(0, len(self.Targets)):
+            #attack modeld by type of uint
+            if ( self.Targets.whoAssigned.Type == 1 ):
+                self.AFAttack(t)
+            if (self.Targets.whoAssigned.Type == 2):
+                self.ArmyAttack(t)
+            if ( self.Targets.whoAssigned.Type == 3 ):
+                self.NavyAttack(t)
+
+
+    def calculateScore(self):
+        for t in range(0, len(self.Targets)):
+
+
 
 
 
@@ -141,24 +231,19 @@ class Scenario():
 
 
         #first time - Random assignment
-        for t in range(0, len(self.Targets)):
+        self.firstTimeRandomAssignments()
 
-            #for all targets
-            for i in range(0, len( self.Targets[t].inRangeof )):
-                #if Mobile Target Assign Random Air Force Unit
-                if self.Targets[t].Mobile == True and self.Targets[t].Destroyed == False :
-                    self.Targets[t].whoDestroyed = self.Units[self.findRandomAirForceUnitLocation()]
-                    self.Targets[t].Destroyed = True
+        #Simulate Attacks
+        self.simulateAttacks()
 
-                #assign random Unit to destroy target
-                if self.Targets[t].Destroyed == False:
-                    self.Targets[t].whoDestroyed = self.Units[self.findRandomUnitLocation()]
-                    self.Targets[t].Destroyed = True
+        #Calculate Score after attacks
+        self.calculateScore()
+
+        #Modify Assignments
 
 
-        #Not first - alter Combinations
 
-            print self.Targets[t].printt()
+
 
 
 
@@ -218,6 +303,7 @@ def main():
 
 
     #Initialize and Load Scenario from files
+
     world =  Scenario([target1, target2,target3], [unit1, unit2, unit3])
 
     #Run Simulation
