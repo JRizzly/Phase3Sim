@@ -15,6 +15,7 @@ import datetime
 import time
 import re
 import os.path
+import random
 from math import radians, cos, sin, asin, sqrt
 
 
@@ -23,33 +24,72 @@ from math import radians, cos, sin, asin, sqrt
 #firstTime = 0
 
 
-class NavyUnit():
+'''class NavyUnit():
     def __init__(self, location, range):
         self.Location = location
-        self.Range = range
+        self.Range = range'''
 
-class ArmyUnit():
-    def __init__(self, location, range):
+class Unit():
+    def __init__(self, location, range, type, name):
         self.Location = location
         self.Range = range
+        self.Type = type
+        self.Name = name
+        self.Alive = True
+        self.Dead = False
 
-class AirForceBase():
+    def printt(self):
+        print "   Unit: " + str(self.Name)
+        self.Location.printt()
+        print "   Range: " + str(self.Range)
+        if type == 1:
+            print "   Air Force"
+        if type == 2:
+            print "   Army"
+        if type == 3:
+            print "   Navy"
+        print ""
+
+'''class AirForceBase():
     def __init__(self, location):
-        self.Location = location
+        self.Location = location'''
 
 class Location():
     def __init__(self,latt,long):
-        self.latt = float(latt)
-        self.long = float(long)
+        self.Latt = float(latt)
+        self.Long = float(long)
+
+    '''def __init__(self, location):
+        self.latt = location.latt
+        self.long = location.long'''
+
+    def printt(self):
+        print "      Lattitude: " + str(self.Latt) + "Longitude: " + str(self.Long)
+
 
 class Target():
     def __init__(self, location, mobile):
-        self.Location = location
+        self.Location = Location(location.Latt, location.Long)
         self.Mobile = mobile
         self.Destroyed = False
         self.MunitionUsed = None
         self.PopDensity = None
         self.whoDestroyed = None
+        self.inRangeof = []
+
+    def printt(self):
+        print "Target Location: " + str(self.Location.Latt) + " " + str(self.Location.Long)
+        #self.Location.printt()
+        print "Stats: "
+        print "   Mobile: " + str(self.Mobile)
+        print "   Destroyed: " + str(self.Destroyed)
+        print "In Range of: "
+        for i in range(0, len(self.inRangeof)):
+            self.inRangeof[i].printt()
+        print "Who Destoryed Target: " + str(self.whoDestroyed.printt())
+
+
+
 
 
 class Solution():
@@ -59,16 +99,71 @@ class Solution():
 
 
 class Scenario():
-    def __init__(self, targets, airforcebases, armyunits, navyunits):
+    def __init__(self, targets, units):
         self.Targets = targets
-        self.AirForceBases = airforcebases
-        self.ArmyUnits = armyunits
-        self.NavyUnits = navyunits
+        self.Units = units
         self.Solution = None
 
+    def findRandomAirForceUnitLocation(self):
+        found = False
+        iter = 0
+        while found == False:
+            iter = iter +1
+            randAFUnit = random.randint(0,len(self.Units)-1)
+            if self.Units[randAFUnit].Type == 1 and self.Units[randAFUnit].Dead == False :
+                return randAFUnit
+            if iter > 99999:
+                print "Stuck in Finding Air Force Loop"
+
+    def findRandomUnitLocation(self):
+        found = False
+        iter = 0
+        while found == False:
+            iter = iter +1
+            randUnit = random.randint(0,len(self.Units)-1)
+            if self.Units[randUnit].Dead == False :
+                return randUnit
+            if iter > 99999:
+                print "Stuck in Finding a Unit"
 
 
-def haversine(Location1, Location2):
+
+    def runSim(self):
+
+        #update all targets with units they can be hit by
+        for t in range(0, len(self.Targets)):
+
+            for i in range(0, len(self.Units)):
+                if distance(self.Targets[t].Location, self.Units[i].Location) < self.Units[i].Range :
+                    self.Targets[t].inRangeof.append(self.Units[i])
+
+            #print self.Targets[t].printt()
+
+
+        #first time - Random assignment
+        for t in range(0, len(self.Targets)):
+
+            #for all targets
+            for i in range(0, len( self.Targets[t].inRangeof )):
+                #if Mobile Target Assign Random Air Force Unit
+                if self.Targets[t].Mobile == True and self.Targets[t].Destroyed == False :
+                    self.Targets[t].whoDestroyed = self.Units[self.findRandomAirForceUnitLocation()]
+                    self.Targets[t].Destroyed = True
+
+                #assign random Unit to destroy target
+                if self.Targets[t].Destroyed == False:
+                    self.Targets[t].whoDestroyed = self.Units[self.findRandomUnitLocation()]
+                    self.Targets[t].Destroyed = True
+
+
+        #Not first - alter Combinations
+
+            print self.Targets[t].printt()
+
+
+
+
+def distance(Location1, Location2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
@@ -103,15 +198,15 @@ def main():
 
     #Colorado SPrings
     loc1 = Location(38.8058, -104.7008)
-    AFBases = [loc1]
+    unit1 = Unit(loc1,999999,1, "AFJohnny")
 
     # Alabama Area
     loc2 = Location(32.31507, -91.59368)
-    army1 = ArmyUnit(loc2, 804.0)
+    unit2 = Unit(loc2, 804.0, 2, "Army Bob")
 
     #Gulf Coast
     loc3 = Location(28.11787, -95.37432)
-    navy1 = NavyUnit(loc3, 1126.0)
+    unit3 = Unit(loc3, 1126.0, 3, "Navy Ned")
 
     #Dallas Targets
     loc4 = Location(32.7584072, -96.7359924)
@@ -123,13 +218,13 @@ def main():
 
 
     #Initialize and Load Scenario from files
-    world =  Scenario([target1, target2,target3], [AFBases], [army1], [navy1])
+    world =  Scenario([target1, target2,target3], [unit1, unit2, unit3])
 
     #Run Simulation
     world.runSim()
 
     #Evaluate Solution
-    world.evaluateSolution
+    #world.evaluateSolution
 
     #loop for improvement
 
