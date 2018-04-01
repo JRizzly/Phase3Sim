@@ -67,6 +67,23 @@ class Location():
         print "      Lattitude: " + str(self.Latt) + " Longitude: " + str(self.Long)
 
 
+class Munition():
+    def __init__(self, name, platform, cost, range, cep, reliability, quantity):
+        self.Name = name
+        self.Platform   = platform
+        self.Cost = cost
+        self.Range = range
+        self.Cep = cep
+        self.Reliability = reliability
+        self.Quantity = quantity
+
+
+
+
+
+
+
+
 class Target():
     def __init__(self, location, mobile):
         self.Location = Location(location.Latt, location.Long)
@@ -88,7 +105,7 @@ class Target():
         self.DownedAirCraftCost = 0
 
              #Collateral Damage
-        self.NumOfCasualties
+        self.NumOfCasualties = 0
 
 
 
@@ -109,11 +126,30 @@ class Target():
 class Solution():
     def __init__(self):
         self.Targets = []
+
+
         self.OperationalEffectivenessScore = 0
         self.CostScore = 0
         self.CollateralDamageScore = 0
         self.TotalScore = 0
         self.WeightedScore = 0
+
+    def calculateScore(self):
+        for t in range(0, len(self.Targets)):
+            # for quantifying effectiveness
+            # operational Effectiveness
+            self.NumAirCraftLost = 0
+            self.TypeMunitionUsed = None
+            self.NumMunitionsUsed = 0
+
+            # Cost of Stategy
+            self.MunitionCost = 0
+            self.DownedAirCraftCost = 0
+
+            # Collateral Damage
+            self.NumOfCasualties = 0
+
+
 
 
 class Scenario():
@@ -210,9 +246,6 @@ class Scenario():
             if ( self.Targets.whoAssigned.Type == 3 ):
                 self.NavyAttack(t)
 
-
-    def calculateScore(self):
-        for t in range(0, len(self.Targets)):
 
 
 
