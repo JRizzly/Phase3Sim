@@ -85,7 +85,7 @@ class MunitionType():
         self.Quantity = quantity
 
         #MER Blast Radius for Each Type of Target
-        self.AirField = af
+        self.AirField = tc #Changed to Troops
         self.CostalDefenseMissile = cdm
         self.CommunicationTower = ct
         self.FuelDepot = fd  #not used
@@ -177,12 +177,26 @@ class Solution():
         self.WeightedScore = 0.0
 
     def printSolution(self):
+        airNum = 0
+        armyNum = 0
+        navyNum = 0
         print "Solution: "
         print "   Assignments:"
         for i in range(0, len(self.Targets)):
             print self.Targets[i].printt()
+            if self.Targets[i].whoAssigned.Name == "AIR FORCE" :
+                airNum += 1
+            if self.Targets[i].whoAssigned.Name == "ARMY" :
+                armyNum += 1
+            if self.Targets[i].whoAssigned.Name == "NAVY" :
+                navyNum += 1
+
         print "Total Score: " + str( self.TotalScore )
         print "Total Cost: " + str(  self.TotMunitionCost)
+        print "Total Air Force: " + str( airNum )
+        print "Total Army : " + str(armyNum)
+        print "Total Navy: " + str(navyNum)
+
 
     def calculateScore(self):
         for t in range(0, len(self.Targets)):
@@ -191,6 +205,8 @@ class Solution():
             self.TotMunitionCost += self.Targets[t].MunitionCost
             self.TotDownedAirCraftCost += self.Targets[t].DownedAirCraftCost
             self.TotNumOfCasualties += self.Targets[t].NumOfCasulties
+            self.TotNumOfCasualties = 0
+
 
         #Building Scores
         # I think we also need to assign weighting to the factors which make up a MOM
@@ -262,12 +278,17 @@ class Scenario():
                 print "Stuck in Finding Air Force Loop"
 
         #find for assignment
-    def findRandomUnitLocation(self):
+    def findRandomUnitLocation(self, t):
         found = False
         iter = 0
+
+        #Services in range of
+        #for i in range(0 , len(self.Targets[t].inRangeof) ):
+
         while found == False:
             iter = iter +1
-            randUnit = random.randint(0,len(self.Units)-1)
+
+            randUnit = random.randint(0,len(self.Targets[t].inRangeof )-1)
             if self.Units[randUnit].Dead == False :
                 return randUnit
             if iter > 99999:
@@ -288,7 +309,7 @@ class Scenario():
 
                 #assign random Unit to  target
                 if self.Targets[t].Assigned == False:
-                    self.Targets[t].whoAssigned = self.Units[self.findRandomUnitLocation()]
+                    self.Targets[t].whoAssigned = self.Units[self.findRandomUnitLocation(t)]
                     #self.Targets[t].ServicesAssigned =
                     self.Targets[t].Assigned = True
 
@@ -311,20 +332,21 @@ class Scenario():
             airPlaneTrips += 1
             randInt = random.randint(0,len( self.Targets[t].whoAssigned.Munitions  )-1)
 
-            '''  #handling ammo quant
-            iter = 0
-            for i in range(0, 10):
-                if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0  ):
-                    randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
-                    iter += 1
+            #handling ammo quantity
+            if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0):
+                iter = 0
+                for i in range(0, 10):
+                    if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0   ):
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+                        iter += 1
 
-                if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0 and iter > 5 ):
-                    self.modifySpecificAssignments(t)
-                    randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+                    if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0 and iter > 5 ):
+                        self.modifySpecificAssignments(t)
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
 
-            '''
 
             randMunition = self.Targets[t].whoAssigned.Munitions[randInt]
+            self.Targets[t].whoAssigned.Munitions[randInt].Quantity -=  -1
 
 
 
@@ -433,9 +455,23 @@ class Scenario():
 
         DamageDone = 0.0
         while self.Targets[t].Area > DamageDone:
-            randInt = random.randint(0,len( self.Targets[t].whoAssigned.Munitions  )-1)
+            randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+
+            # handling ammo quantity
+            if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0):
+                iter = 0
+                for i in range(0, 10):
+                    if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0):
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+                        iter += 1
+
+                    if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0 and iter > 5):
+                        self.modifySpecificAssignments(t)
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+
             randMunition = self.Targets[t].whoAssigned.Munitions[randInt]
-            #self.Targets[t].MunitionsUsed.append( randMunition )
+            self.Targets[t].whoAssigned.Munitions[randInt].Quantity -= -1
+
 
             if self.Targets[t].TargetType == "AirField":
                 DamageDone += randMunition.AirField
@@ -521,9 +557,22 @@ class Scenario():
 
         DamageDone = 0.0
         while self.Targets[t].Area > DamageDone:
-            randInt = random.randint(0,len( self.Targets[t].whoAssigned.Munitions  )-1)
+            randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+
+            # handling ammo quantity
+            if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0):
+                iter = 0
+                for i in range(0, 10):
+                    if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0):
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+                        iter += 1
+
+                    if (self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0 and iter > 5):
+                        self.modifySpecificAssignments(t)
+                        randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+
             randMunition = self.Targets[t].whoAssigned.Munitions[randInt]
-            #self.Targets[t].MunitionsUsed.append( randMunition )
+            self.Targets[t].whoAssigned.Munitions[randInt].Quantity -= -1
 
             if self.Targets[t].TargetType == "AirField":
                 DamageDone += randMunition.AirField
@@ -637,12 +686,18 @@ class Scenario():
         # update all targets with units they can be hit by with respect to unit Grand Range
         for t in range(0, len(self.Targets)):
 
+            #cycle through all services
             for i in range(0, len(self.Units)):
-                distance2 = distance(self.Targets[t].Location, self.Units[i].Locations[0])
+                #distance2 = distance(self.Targets[t].Location, self.Units[i].Locations[0])
+
                 #if distance(self.Targets[t].Location, self.Units[i].Locations[0]) <   self.Units[i].Range:
                     #self.Targets[t].inRangeof.append(self.Units[i])
+
+                #search all locations of the service
                 if smallestDistance(self.Targets[t].Location, self.Units[i].Locations ) < self.Units[i].Range:
                     self.Targets[t].inRangeof.append(self.Units[i])
+
+
 
             # print self.Targets[t].printt()
 
@@ -652,13 +707,23 @@ class Scenario():
 
         randTarget = random.randint(0, len(self.Targets) - 1)
 
+        '''
         # for all units in range of this target
         for i in range(0, len(self.Targets[randTarget].inRangeof)):
 
             # assign random Unit to  target
             if self.Targets[randTarget].Assigned == True:
-                self.Targets[randTarget].whoAssigned = self.Units[self.findRandomUnitLocation()]
+                self.Targets[randTarget].whoAssigned = self.Units[self.findRandomUnitLocation(randTarget)]
                 self.Targets[randTarget].Assigned = True
+        '''
+
+        randUnit = random.randint(0, len(self.Targets[randTarget].inRangeof)-1 )
+
+        self.Targets[randTarget].whoAssigned = self.Units[self.findRandomUnitLocation(randUnit)]
+
+
+
+
 
     def modifySpecificAssignments(self,t):
         #Randomly change an assignment
@@ -842,45 +907,45 @@ def main():
         Target("Airfield 2               ", Location(35.4078, -97.4172), False, "AirField", 50, 1000),
         Target("Airfield 3               ", Location(32.4938, -93.5975), False, "AirField", 50, 1000),
         Target("SAM Radar 1              ", Location(33.2857, -111.843), False, "SAMRadar", 50, 1000),
-        Target("SAM Radar 2              ", Location(35.2864, -107.11), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 2              ", Location(35.2864, -107.11),  False, "SAMRadar", 50, 1000),
         Target("SAM Radar 3              ", Location(34.8499, -106.931), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 4              ", Location(34.6898, -106.256), False, "SAMRadar", 50, 1000),
-        Target("SAM Radar 5              ", Location(35.129, -106.137), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 5              ", Location(35.129, -106.137),  False, "SAMRadar", 50, 1000),
         Target("SAM Radar 6              ", Location(35.4871, -105.252), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 7              ", Location(35.4324, -102.094), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 8              ", Location(33.4288, -102.037), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 9              ", Location(37.5433, -97.5429), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 10             ", Location(38.9316, -94.3801), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 11             ", Location(38.3162, -90.5732), False, "SAMRadar", 50, 1000),
-        Target("SAM Radar 12             ", Location(35.1327, -97.722), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 12             ", Location(35.1327, -97.722),  False, "SAMRadar", 50, 1000),
         Target("SAM Radar 13             ", Location(32.3983, -99.8103), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 14             ", Location(33.0392, -97.0209), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 15             ", Location(32.5388, -97.4106), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 16             ", Location(32.6038, -96.5893), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 17             ", Location(32.6573, -93.8792), False, "SAMRadar", 50, 1000),
         Target("SAM Radar 18             ", Location(30.2001, -94.3142), False, "SAMRadar", 50, 1000),
-        Target("SAM Radar 19             ", Location(28.2394, -97.978), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 19             ", Location(28.2394, -97.978),  False, "SAMRadar", 50, 1000),
         Target("SAM Radar 20             ", Location(29.6419, -96.5468), False, "SAMRadar", 50, 1000),
-        Target("SAM  1                   ", Location(33.2857, -111.843), False, "SAMSite", 50, 1000),
-        Target("SAM  2                   ", Location(35.2864, -107.11), False, "SAMSite", 50, 1000),
-        Target("SAM  3                   ", Location(34.8499, -106.931), False, "SAMSite", 50, 1000),
-        Target("SAM  4                   ", Location(34.6898, -106.256), False, "SAMSite", 50, 1000),
-        Target("SAM  5                   ", Location(35.129, -106.137), False, "SAMSite", 50, 1000),
-        Target("SAM  6                   ", Location(35.4871, -105.252), False, "SAMSite", 50, 1000),
-        Target("SAM  7                   ", Location(35.4324, -102.094), False, "SAMSite", 50, 1000),
-        Target("SAM  8                   ", Location(33.4288, -102.037), False, "SAMSite", 50, 1000),
-        Target("SAM  9                   ", Location(37.5433, -97.5429), False, "SAMSite", 50, 1000),
-        Target("SAM  10                  ", Location(38.9316, -94.3801), False, "SAMSite", 50, 1000),
-        Target("SAM  11                  ", Location(38.3162, -90.5732), False, "SAMSite", 50, 1000),
-        Target("SAM  12                  ", Location(35.1327, -97.722), False, "SAMSite", 50, 1000),
-        Target("SAM  13                  ", Location(32.3983, -99.8103), False, "SAMSite", 50, 1000),
-        Target("SAM  14                  ", Location(33.0392, -97.0209), False, "SAMSite", 50, 1000),
-        Target("SAM  15                  ", Location(32.5388, -97.4106), False, "SAMSite", 50, 1000),
-        Target("SAM  16                  ", Location(32.6038, -96.5893), False, "SAMSite", 50, 1000),
-        Target("SAM  17                  ", Location(32.6573, -93.8792), False, "SAMSite", 50, 1000),
-        Target("SAM  18                  ", Location(30.2001, -94.3142), False, "SAMSite", 50, 1000),
-        Target("SAM  19                  ", Location(28.2394, -97.978), False, "SAMSite", 50, 1000),
-        Target("SAM  20                  ", Location(29.6419, -96.5468), False, "SAMSite", 50, 1000),
+        Target("SAM  1                   ", Location(33.2857, -111.843), True , "SAMSite", 50, 1000),
+        Target("SAM  2                   ", Location(35.2864, -107.11),  True , "SAMSite", 50, 1000),
+        Target("SAM  3                   ", Location(34.8499, -106.931), True , "SAMSite", 50, 1000),
+        Target("SAM  4                   ", Location(34.6898, -106.256), True , "SAMSite", 50, 1000),
+        Target("SAM  5                   ", Location(35.129, -106.137),  True , "SAMSite", 50, 1000),
+        Target("SAM  6                   ", Location(35.4871, -105.252), True , "SAMSite", 50, 1000),
+        Target("SAM  7                   ", Location(35.4324, -102.094), True , "SAMSite", 50, 1000),
+        Target("SAM  8                   ", Location(33.4288, -102.037), True , "SAMSite", 50, 1000),
+        Target("SAM  9                   ", Location(37.5433, -97.5429), True , "SAMSite", 50, 1000),
+        Target("SAM  10                  ", Location(38.9316, -94.3801), True , "SAMSite", 50, 1000),
+        Target("SAM  11                  ", Location(38.3162, -90.5732), True , "SAMSite", 50, 1000),
+        Target("SAM  12                  ", Location(35.1327, -97.722),  True , "SAMSite", 50, 1000),
+        Target("SAM  13                  ", Location(32.3983, -99.8103), True , "SAMSite", 50, 1000),
+        Target("SAM  14                  ", Location(33.0392, -97.0209), True , "SAMSite", 50, 1000),
+        Target("SAM  15                  ", Location(32.5388, -97.4106), True , "SAMSite", 50, 1000),
+        Target("SAM  16                  ", Location(32.6038, -96.5893), True , "SAMSite", 50, 1000),
+        Target("SAM  17                  ", Location(32.6573, -93.8792), True , "SAMSite", 50, 1000),
+        Target("SAM  18                  ", Location(30.2001, -94.3142), True , "SAMSite", 50, 1000),
+        Target("SAM  19                  ", Location(28.2394, -97.978),  True , "SAMSite", 50, 1000),
+        Target("SAM  20                  ", Location(29.6419, -96.5468), True , "SAMSite", 50, 1000),
         Target("Terrorist Training Camp 1", Location(33.9869, -112.65), False, "TerroristTrainingCamp", 50, 1000),
         Target("Terrorist Training Camp 2", Location(32.7705, -106.96), False, "TerroristTrainingCamp", 50, 1000),
         Target("Terrorist Training Camp 3", Location(30.0369, -103.182), False, "TerroristTrainingCamp", 50, 1000),
@@ -981,11 +1046,11 @@ def main():
     loc2 = Location(32.31507, -91.59368)
     loc21 = Location(34.31507, -88.59368)
     loc22 = Location(31.31507, -90.59368)
-    unit2 = ServiceTypeUnit([loc2, loc21, loc22], 800.0, 2, "ARMY", [mun1, mun2])
+    unit2 = ServiceTypeUnit([loc2, loc21, loc22], 800.0, 2, "ARMY", [mun1])
 
     # Gulf Coast
     loc3 = Location(28.11787, -95.37432)
-    unit3 = ServiceTypeUnit([loc3], 1126.0, 3, "Navy", [mun7,mun8,mun9,mun10])
+    unit3 = ServiceTypeUnit([loc3], 1126.0, 3, "NAVY", [mun7,mun8,mun9,mun10])
 
 
     #TODO: Handle the case switching assignments in the case of no muni8tions left to be used by that unit
@@ -994,12 +1059,12 @@ def main():
 
     #Initialize and Load Scenario from files
     grandFamily = Family()
-    numKids = 1000
-    childAge = 50
+    numKids = 1
+    childAge = 500
 
     #build the number of Children in the family
     for i in range(0, numKids):
-        child = Scenario(allTargets, [unit1, unit2, unit3], [mun1, mun2, mun3], childAge)
+        child = Scenario(allTargets, [unit1, unit2, unit3], [0], childAge)
         grandFamily.children.append(copy.deepcopy(child))
 
     #Run evolution of each child
@@ -1015,6 +1080,7 @@ def main():
     print "Family Top Score: " + str(grandFamily.HighestScore)
     print "Family Top Solution:  "
     print grandFamily.HighestSolution.printSolution()
+    print ""
 
 
     '''
