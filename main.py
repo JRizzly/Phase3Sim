@@ -86,7 +86,7 @@ class MunitionType():
 
         #MER Blast Radius for Each Type of Target
         self.AirField = af
-        self.CoastalDefenseMissile = cdm
+        self.CostalDefenseMissile = cdm
         self.CommunicationTower = ct
         self.FuelDepot = fd  #not used
         self.House = h   #Not used
@@ -102,16 +102,16 @@ class MunitionType():
 
 
 class Target():
-    def __init__(self, name, location, mobile, targetType, radius, popDens):
+    def __init__(self, name, location, mobile, targetType, area, popDens):
 
         self.Name = name
 
         self.Location = Location(location.Latt, location.Long)
         self.Mobile = mobile
         self.TargetType = targetType
-        self.Radius = float(radius)
+        #self.Radius = float(radius)
 
-        self.Area = math.pow(radius, 2)*3.141
+        self.Area = float(area)
 
         self.Destroyed = False
         self.PopDensity = float(popDens)
@@ -310,8 +310,26 @@ class Scenario():
         while self.Targets[t].Area > DamageDone:
             airPlaneTrips += 1
             randInt = random.randint(0,len( self.Targets[t].whoAssigned.Munitions  )-1)
+
+            '''  #handling ammo quant
+            iter = 0
+            for i in range(0, 10):
+                if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0  ):
+                    randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+                    iter += 1
+
+                if ( self.Targets[t].whoAssigned.Munitions[randInt].Quantity <= 0 and iter > 5 ):
+                    self.modifySpecificAssignments(t)
+                    randInt = random.randint(0, len(self.Targets[t].whoAssigned.Munitions) - 1)
+
+            '''
+
             randMunition = self.Targets[t].whoAssigned.Munitions[randInt]
-            #self.Targets[t].MunitionsUsed.append( randMunition )
+
+
+
+            # modifySpecificAssignments(self,t)
+
 
             #Random Air Force shot Down:
 
@@ -322,11 +340,11 @@ class Scenario():
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.AirField #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
-            if self.Targets[t].TargetType == "CoastalDefenseMissile":
-                DamageDone += randMunition.CoastalDefenseMissile
+            if self.Targets[t].TargetType == "CostalDefenseMissile":
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
-                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CoastalDefenseMissile #change here
+                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CostalDefenseMissile #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "CommunicationTower":
                 DamageDone += randMunition.CommunicationTower
@@ -342,7 +360,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.FuelDepot #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "House":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.House #change here
@@ -361,7 +379,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.RocketBattery #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "SAMRadar":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.SAMRadar #change here
@@ -425,11 +443,11 @@ class Scenario():
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.AirField #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
-            if self.Targets[t].TargetType == "CoastalDefenseMissile":
-                DamageDone += randMunition.CoastalDefenseMissile
+            if self.Targets[t].TargetType == "CostalDefenseMissile":
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
-                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CoastalDefenseMissile #change here
+                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CostalDefenseMissile #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "CommunicationTower":
                 DamageDone += randMunition.CommunicationTower
@@ -445,7 +463,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.FuelDepot #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "House":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.House #change here
@@ -464,7 +482,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.RocketBattery #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "SAMRadar":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.SAMRadar #change here
@@ -513,11 +531,11 @@ class Scenario():
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.AirField #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
-            if self.Targets[t].TargetType == "CoastalDefenseMissile":
-                DamageDone += randMunition.CoastalDefenseMissile
+            if self.Targets[t].TargetType == "CostalDefenseMissile":
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
-                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CoastalDefenseMissile #change here
+                self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.CostalDefenseMissile #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "CommunicationTower":
                 DamageDone += randMunition.CommunicationTower
@@ -533,7 +551,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.FuelDepot #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "House":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.House #change here
@@ -552,7 +570,7 @@ class Scenario():
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.RocketBattery #change here
                 self.Targets[t].whoAssigned.Munitions[randInt] = randMunition
             if self.Targets[t].TargetType == "SAMRadar":
-                DamageDone += randMunition.CoastalDefenseMissile
+                DamageDone += randMunition.CostalDefenseMissile
                 self.Targets[t].MunitionsUsed.append(randMunition)
                 self.Targets[t].MunitionCost += randMunition.Cost
                 self.Targets[t].NumOfCasulties += self.Targets[t].PopDensity*.001*randMunition.SAMRadar #change here
@@ -633,6 +651,19 @@ class Scenario():
         #Randomly change an assignment
 
         randTarget = random.randint(0, len(self.Targets) - 1)
+
+        # for all units in range of this target
+        for i in range(0, len(self.Targets[randTarget].inRangeof)):
+
+            # assign random Unit to  target
+            if self.Targets[randTarget].Assigned == True:
+                self.Targets[randTarget].whoAssigned = self.Units[self.findRandomUnitLocation()]
+                self.Targets[randTarget].Assigned = True
+
+    def modifySpecificAssignments(self,t):
+        #Randomly change an assignment
+
+        randTarget = t
 
         # for all units in range of this target
         for i in range(0, len(self.Targets[randTarget].inRangeof)):
@@ -775,22 +806,118 @@ def distance(Location1, Location2):
     km = 6371 * c
     return km
 
-def readInMunitions():
-    pass
-
-    # Read in from files
-    #f = open('Munitions.csv', 'a', 0)
-
-
 
 def main():
     global inf
     global EliteFamily
-    #Read in from files
-    #f = open('OfficialRates2.csv', 'a', 0)
+
+    # target1    = Target("name                     "   ,   Location( Lattitude , Longitude    )   ,   Mobile Tru, "Type of Target         " , Critical Area ,   Population Density )
+    allTargets =[
+        Target("MRBM 1                   ", Location(33.8408, -110.617), False, "MRBM", 50, 1000),
+        Target("MRBM 2                   ", Location(32.613, -108.943), False, "MRBM", 50, 1000),
+        Target("MRBM 3                   ", Location(32.0692, -106.745), False, "MRBM", 50, 1000),
+        Target("MRBM 4                   ", Location(37.2908, -100.084), False, "MRBM", 50, 1000),
+        Target("MRBM 5                   ", Location(33.7268, -99.076), False, "MRBM", 50, 1000),
+        Target("Communications Tower 1   ", Location(33.6864, -111.791), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 2   ", Location(32.3294, -110.894), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 3   ", Location(35.6943, -105.801), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 4   ", Location(35.2292, -106.709), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 5   ", Location(31.8545, -106.101), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 6   ", Location(35.2177, -101.793), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 7   ", Location(31.7543, -102.151), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 8   ", Location(32.5272, -99.61), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 9   ", Location(35.5165, -97.5116), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 10  ", Location(36.1694, -95.7826), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 11  ", Location(39.0174, -94.7808), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 12  ", Location(38.7036, -90.3817), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 13  ", Location(32.875, -97.3112), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 14  ", Location(32.9865, -96.6902), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 15  ", Location(32.3139, -95.2101), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 16  ", Location(32.3997, -93.8648), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 17  ", Location(29.4559, -98.393), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 18  ", Location(30.3003, -97.6918), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 19  ", Location(27.6687, -97.4406), False, "CommunicationTower", 50, 1000),
+        Target("Communications Tower 20  ", Location(29.8322, -95.4088), False, "CommunicationTower", 50, 1000),
+        Target("Airfield 1               ", Location(33.6098, -112.261), False, "AirField", 50, 1000),
+        Target("Airfield 2               ", Location(35.4078, -97.4172), False, "AirField", 50, 1000),
+        Target("Airfield 3               ", Location(32.4938, -93.5975), False, "AirField", 50, 1000),
+        Target("SAM Radar 1              ", Location(33.2857, -111.843), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 2              ", Location(35.2864, -107.11), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 3              ", Location(34.8499, -106.931), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 4              ", Location(34.6898, -106.256), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 5              ", Location(35.129, -106.137), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 6              ", Location(35.4871, -105.252), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 7              ", Location(35.4324, -102.094), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 8              ", Location(33.4288, -102.037), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 9              ", Location(37.5433, -97.5429), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 10             ", Location(38.9316, -94.3801), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 11             ", Location(38.3162, -90.5732), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 12             ", Location(35.1327, -97.722), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 13             ", Location(32.3983, -99.8103), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 14             ", Location(33.0392, -97.0209), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 15             ", Location(32.5388, -97.4106), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 16             ", Location(32.6038, -96.5893), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 17             ", Location(32.6573, -93.8792), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 18             ", Location(30.2001, -94.3142), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 19             ", Location(28.2394, -97.978), False, "SAMRadar", 50, 1000),
+        Target("SAM Radar 20             ", Location(29.6419, -96.5468), False, "SAMRadar", 50, 1000),
+        Target("SAM  1                   ", Location(33.2857, -111.843), False, "SAMSite", 50, 1000),
+        Target("SAM  2                   ", Location(35.2864, -107.11), False, "SAMSite", 50, 1000),
+        Target("SAM  3                   ", Location(34.8499, -106.931), False, "SAMSite", 50, 1000),
+        Target("SAM  4                   ", Location(34.6898, -106.256), False, "SAMSite", 50, 1000),
+        Target("SAM  5                   ", Location(35.129, -106.137), False, "SAMSite", 50, 1000),
+        Target("SAM  6                   ", Location(35.4871, -105.252), False, "SAMSite", 50, 1000),
+        Target("SAM  7                   ", Location(35.4324, -102.094), False, "SAMSite", 50, 1000),
+        Target("SAM  8                   ", Location(33.4288, -102.037), False, "SAMSite", 50, 1000),
+        Target("SAM  9                   ", Location(37.5433, -97.5429), False, "SAMSite", 50, 1000),
+        Target("SAM  10                  ", Location(38.9316, -94.3801), False, "SAMSite", 50, 1000),
+        Target("SAM  11                  ", Location(38.3162, -90.5732), False, "SAMSite", 50, 1000),
+        Target("SAM  12                  ", Location(35.1327, -97.722), False, "SAMSite", 50, 1000),
+        Target("SAM  13                  ", Location(32.3983, -99.8103), False, "SAMSite", 50, 1000),
+        Target("SAM  14                  ", Location(33.0392, -97.0209), False, "SAMSite", 50, 1000),
+        Target("SAM  15                  ", Location(32.5388, -97.4106), False, "SAMSite", 50, 1000),
+        Target("SAM  16                  ", Location(32.6038, -96.5893), False, "SAMSite", 50, 1000),
+        Target("SAM  17                  ", Location(32.6573, -93.8792), False, "SAMSite", 50, 1000),
+        Target("SAM  18                  ", Location(30.2001, -94.3142), False, "SAMSite", 50, 1000),
+        Target("SAM  19                  ", Location(28.2394, -97.978), False, "SAMSite", 50, 1000),
+        Target("SAM  20                  ", Location(29.6419, -96.5468), False, "SAMSite", 50, 1000),
+        Target("Terrorist Training Camp 1", Location(33.9869, -112.65), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Terrorist Training Camp 2", Location(32.7705, -106.96), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Terrorist Training Camp 3", Location(30.0369, -103.182), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Costal Defense Missile 1 ", Location(27.8816, -97.3054), False, "CostalDefenseMissile", 50, 1000),
+        Target("Costal Defense Missile 2 ", Location(28.4684, -96.6327), False, "CostalDefenseMissile", 50, 1000),
+        Target("Costal Defense Missile 3 ", Location(29.6849, -94.6434), False, "CostalDefenseMissile", 50, 1000),
+        Target("Costal Defense Missile 4 ", Location(29.1124, -95.4305), False, "CostalDefenseMissile", 50, 1000),
+        Target("Rocket Battery 1         ", Location(36.5029, -106.881), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 2         ", Location(36.6675, -106.022), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 3         ", Location(36.8321, -104.606), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 4         ", Location(38.4837, -101.693), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 5         ", Location(34.5421, -92.4066), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 6         ", Location(31.3824, -93.4106), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 7         ", Location(29.2269, -98.4932), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 8         ", Location(30.4291, -96.418), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 9         ", Location(35.4367, -105.536), False, "RocketBattery", 50, 1000),
+        Target("Rocket Battery 10        ", Location(32.4871, -92.78), False, "RocketBattery", 50, 1000),
+        Target("Infantry Company 1       ", Location(36.9323, -104.391), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 2       ", Location(35.3365, -107.475), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 3       ", Location(35.9376, -106.595), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 4       ", Location(36.3527, -105.579), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 5       ", Location(37.4761, -105.135), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 6       ", Location(32.6787, -93.6353), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 7       ", Location(32.4191, -94.8297), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 8       ", Location(33.3953, -94.165), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 9       ", Location(33.063, -96.0448), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 10      ", Location(32.5125, -96.8757), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 11      ", Location(29.5381, -95.2804), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 12      ", Location(27.9491, -97.5549), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 13      ", Location(30.1301, -97.773), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 14      ", Location(29.9847, -94.1484), False, "TerroristTrainingCamp", 50, 1000),
+        Target("Infantry Company 15      ", Location(28.8007, -97.0044), False, "TerroristTrainingCamp", 50, 1000),
+    ]
 
 
 
+    '''
     ###### Targets #####
     #Dallas Targets self, ( name, location, mobile, targetType, radius, popDens):
     loc4 = Location(32.7584072, -96.7359924)
@@ -816,6 +943,7 @@ def main():
     target9 = Target("North East", tloc6, False, "TerroristTrainingCamp", 4, 1222)
     target10 = Target("North East", tloc7, False, "TerroristTrainingCamp", 2, 1222)
     target11 = Target("North East", tloc8, False, "TerroristTrainingCamp", 4, 1222)
+    '''
 
 
 
@@ -838,9 +966,6 @@ def main():
     mun8 = MunitionType("BGM - 108 Tomahawk", 3, 1000, 1111.2, 4.6, 0.9, inf, 1.167750321, 131.5298499, 91.60166623, 101.1379605, 114.0097601, 131.5298499, 131.5298499, 88.30884733, 111.1088541, 31.24932979, 241.7452417  )
     mun9 = MunitionType("AGM - 84 E Harpoon / SLAM", 3, 475, 111.12, 6.7, 0.8, inf, 0.957420581, 96.793559, 91.60166623, 61.9139031, 86.61771886, 96.793559, 96.793559, 72.90993911, 99.04084853, 27.76991371, 190.5345095  )
     mun10 = MunitionType("AGM - 84 E Harpoon / SLAM - ER", 3, 575, 277.8, 6.7, 0.9, inf, 0.957420581, 96.793559, 91.60166623, 61.9139031, 86.61771886, 96.793559, 96.793559, 72.90993911, 99.04084853, 27.76991371, 190.5345095  )
-
-
-
 
 
 
@@ -869,18 +994,19 @@ def main():
 
     #Initialize and Load Scenario from files
     grandFamily = Family()
-    numKids = 10
-    childAge = 10
+    numKids = 1000
+    childAge = 50
 
     #build the number of Children in the family
     for i in range(0, numKids):
-        child = Scenario([target1, target2,target3, target4, target5, target6, target7, target8, target9,target10,target11], [unit1, unit2, unit3], [mun1, mun2, mun3], childAge)
+        child = Scenario(allTargets, [unit1, unit2, unit3], [mun1, mun2, mun3], childAge)
         grandFamily.children.append(copy.deepcopy(child))
 
     #Run evolution of each child
     # seperate thread so it can be multithreaded as needed
     for i in range(0, len(grandFamily.children )):
         currentChildTopSolution = grandFamily.children[i].runSim()
+        grandFamily.children[i] = None
         if currentChildTopSolution.TotalScore > grandFamily.HighestScore:
             grandFamily.HighestSolution = currentChildTopSolution
             grandFamily.HighestScore = currentChildTopSolution.TotalScore
